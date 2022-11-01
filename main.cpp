@@ -1,42 +1,114 @@
-#include <any>
-#include <functional>
 #include <iostream>
-#include <map>
-#include <string>
 #include <vector>
+#include <algorithm>
 #include <cmath>
-using mojamapa_t = std::map<std::string, int>;
-using mojafunkcja_t = std::function<double(std::vector<double>)>;
-int main(int argc, char **argv) {
-  using namespace std;
-  map<string, mojafunkcja_t> formatery;
-  formatery["sin"] = [](vector<double> args) {
-              auto value_1 = args.at(0);
-              return sin(value_1);
-  };
-  formatery["mod"] = [](vector<double> args) {
-      double x = args.at(0);
-      double y = args.at(1);
-      return fmod(x, y); };
-  formatery["add"] = [](vector<double> args) {
-      double x = args.at(0);
-      double y = args.at(1);
-      return x + y; };
-  try {
-    vector<string> argumenty(argv, argv + argc);
 
-    vector<double> values;
-    transform(argv + 2, argv + argc,  std::back_inserter(values), [](const char* v){return std::stod(v);});
 
-    auto selected_f = argumenty.at(1);
-    auto f = formatery.at(selected_f);
-    auto c = f(values);
-    cout << "result is: " << c << endl;
-  }
-  catch (std::out_of_range aor) {
-    cout << "podaj argument. Dostępne to: ";
-    for (auto [k, v] : formatery) cout << " " << k;
-    cout << endl;
-  }
-  return 0;
+int xor_binary(int a, int b){
+    if(a !=b){
+        return 1;
+    }
+    return 0;
+}
+
+std::vector<int> gray_to_binary(std::vector<int> gray){
+    std::vector<int> result = {};
+    int b = gray[0];
+    int g = b;
+    result.push_back(b);
+    b = xor_binary(g, gray[1]);
+    result.push_back(b);
+    for(int i = 2; i < gray.size(); i++){
+        b = xor_binary(b, gray[i]);
+        result.push_back(b);
+    }
+    return result;
+}
+
+double binary_to_decimal(std::vector<int> binary, double starting_power){
+    int result = 0;
+
+    std::vector<int> binary_copy = binary;
+    std::reverse(binary_copy.begin(), binary_copy.end());
+    for (int number : binary_copy){
+        result += number * pow(2.0, starting_power);
+        starting_power += 1;
+    }
+    return result;
+}
+
+double gray_to_decimal(std::vector<int> binary, double starting_power){
+
+    double result = 0.0;
+
+    std::vector<int> binary_copy = gray_to_binary(binary);
+    std::reverse(binary_copy.begin(), binary_copy.end());
+    for (int number : binary_copy){
+        result += double(number) * pow(2.0, starting_power);
+        starting_power += 1.0;
+    }
+    return result;
+}
+
+std::vector<double> binary_get_all_args_to_vector(std::vector<int> binary, int number_of_arguments, double starting_power){
+    std::vector<double> result = {};
+    int one_arg_size = binary.size() / number_of_arguments;
+    std::vector<int>::iterator start = binary.begin();
+    for(int i = 0; i < number_of_arguments; i++){
+        std::vector<int> partial(start, start + one_arg_size);
+        int dec = binary_to_decimal(partial, starting_power);
+
+        result.push_back(dec);
+        start += one_arg_size;
+    }
+
+
+    return result;
+}
+
+std::vector<double> gray_get_all_args_to_vector(std::vector<int> binary, int number_of_arguments, double starting_power){
+    std::vector<double> result = {};
+    int one_arg_size = binary.size() / number_of_arguments;
+    std::vector<int>::iterator start = binary.begin();
+    for(int i = 0; i < number_of_arguments; i++){
+        std::vector<int> partial(start, start + one_arg_size);
+        double dec = gray_to_decimal(partial, starting_power);
+
+        result.push_back(dec);
+        start += one_arg_size;
+    }
+
+
+    return result;
+}
+
+double restrigin_function(std::vector <double> xy){
+    double x = xy[0];
+    double y = xy[1];
+    double A = 10.0;
+    return A*2.0 + x*x - A*cos(2*M_PI*x) + y*y - A*cos(2*M_PI*y);
+}
+
+double restrigin_function_from_gray(std::vector <int> gray, double start_power){
+    std::vector<double> args = gray_get_all_args_to_vector(gray, 2, start_power);
+    double x = args[0];
+    double y = args[1];
+    double A = 10.0;
+    return A*2.0 + x*x - A*cos(2*M_PI*x) + y*y - A*cos(2*M_PI*y);
+}
+
+double restrigin_function_from_binary(std::vector <int> binary, double start_power){
+    std::vector<double> args = binary_get_all_args_to_vector(binary, 2, start_power);
+    double x = args[0];
+    double y = args[1];
+    double A = 10.0;
+    return A*2.0 + x*x - A*cos(2*M_PI*x) + y*y - A*cos(2*M_PI*y);
+}
+
+int main() {
+    double a = restrigin_function_from_gray({1,0,0,1,1,1,1,0,0,1,1,1}, 0.0);
+    double b = restrigin_function({58,58});
+//    std::vector<double> r = gray_get_all_args_to_vector({1,0,0,1,1,1,1,0,0,1,1,1}, 2, -3.0);
+    std::cout << "Hello, World!" << std::endl;
+    return 0;
 }
